@@ -89,6 +89,11 @@ export abstract class Oauth1Driver<Token extends Oauth1AccessToken, Scopes exten
   protected abstract scopesSeparator: string
 
   /**
+   * Is the authorization process stateless?
+   */
+   protected isStateless: boolean = false
+
+  /**
    * Returns details for the authorized user
    */
   public abstract user(
@@ -185,10 +190,11 @@ export abstract class Oauth1Driver<Token extends Oauth1AccessToken, Scopes exten
   }
 
   /**
-   * Perform stateless authentication. Only applicable for Oauth1 client
+   * Perform stateless authentication. Only applicable for Oauth2 client
    */
-  public stateless(): never {
-    throw new Exception('OAuth1 does not support stateless authorization')
+   public stateless(): this {
+    this.isStateless = true
+    return this
   }
 
   /**
@@ -230,6 +236,9 @@ export abstract class Oauth1Driver<Token extends Oauth1AccessToken, Scopes exten
    * Find if there is a state mismatch
    */
   public stateMisMatch(): boolean {
+    if (this.isStateless) {
+      return false
+    }
     return this.oauthTokenCookieValue !== this.ctx.request.input(this.oauthTokenParamName)
   }
 
